@@ -51,7 +51,7 @@ export function EmailLoginForm({ error, message }: EmailLoginFormProps) {
 
       // Upsert into users table via our API
       if (data.user) {
-        await fetch('/api/profile', {
+        const profileRes = await fetch('/api/profile', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -60,6 +60,13 @@ export function EmailLoginForm({ error, message }: EmailLoginFormProps) {
             full_name: email.split('@')[0],
           }),
         })
+
+        if (!profileRes.ok) {
+          const profileErr = await profileRes.json().catch(() => ({}))
+          setFormError(`Account created but profile setup failed: ${profileErr.error || 'Unknown error'}. Please contact an administrator.`)
+          setLoading(false)
+          return
+        }
       }
 
       // Auto-sign-in after signup (avoids issues with unconfirmed users)
