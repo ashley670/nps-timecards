@@ -8,11 +8,6 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-# Redirect all requests through Next.js
-[[redirects]]
-  from   = "/*"
-  to     = "/.netlify/functions/___netlify-handler"
-  status = 200
 
 [dev]
   command    = "npm run dev"
