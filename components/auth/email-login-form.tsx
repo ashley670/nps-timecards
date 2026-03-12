@@ -62,9 +62,28 @@ export function EmailLoginForm({ error, message }: EmailLoginFormProps) {
         })
       }
 
-      setFormMessage('Account created! You can now sign in.')
-      setMode('signin')
-      setLoading(false)
+      // Auto-sign-in after signup (avoids issues with unconfirmed users)
+      if (data.session) {
+        router.push('/')
+        router.refresh()
+        return
+      }
+
+      // If no session returned, fall back to manual sign-in
+      const { error: autoSignInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (autoSignInError) {
+        setFormMessage('Account created! You can now sign in.')
+        setMode('signin')
+        setLoading(false)
+        return
+      }
+
+      router.push('/')
+      router.refresh()
       return
     }
 
