@@ -33,7 +33,7 @@ export default async function RootPage() {
   if (!role) {
     try {
       const adminClient = createAdminClient()
-      await adminClient.from('users').upsert(
+      const { error: upsertError } = await adminClient.from('users').upsert(
         {
           id: user.id,
           email: user.email ?? '',
@@ -44,10 +44,18 @@ export default async function RootPage() {
         },
         { onConflict: 'id', ignoreDuplicates: true }
       )
-      role = 'staff'
+      if (!upsertError) {
+        role = 'staff'
+      }
     } catch {
-      redirect('/auth/login?error=Profile+setup+failed.+Please+contact+an+administrator.')
+      // Admin client unavailable
     }
+  }
+
+  // If we still have no role, sign the user out to break the redirect loop
+  if (!role) {
+    await supabase.auth.signOut()
+    redirect('/auth/login?error=Profile+setup+failed.+Please+contact+an+administrator.')
   }
 
   if (role === 'district_admin') redirect('/admin')
